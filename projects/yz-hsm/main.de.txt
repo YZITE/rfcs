@@ -41,8 +41,10 @@ Client <-> (primary) Database Server <-> Server-Env <-> File Server <-> Backend
 
 Database Server = Controller
 
-Datenbank: SQLite
-  siehe "Limits": https://www.sqlite.org/limits.html
+Datenbank:
+    SQLite, siehe "Limits": https://www.sqlite.org/limits.html
+  oder
+    PostgreSQL, erspart Aufwand für Synchronisierung
 
 Backend = file path
 
