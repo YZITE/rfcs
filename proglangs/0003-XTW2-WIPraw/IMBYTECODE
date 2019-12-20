@@ -1,0 +1,95 @@
+Aliases:
+
+  LABEL,VAR := STR
+  a,b,... := nth elem of main stack
+    a := 1st elem
+  %a,%b,... := nth register (of 2)
+    %a := 1st register
+
+  S* := stack ...
+
+VM Memory:
+  Sret <instr ptr>
+  Smain, Sarg <data ptr>
+  %a, %b <data ptr>
+
+DATA TYPES:
+  DATA   generic
+  INT    integer
+  FLT    double
+  STR    string
+  PLUGIN plugin
+
+Commands:            name                              -- stack in       -- stack out
+
+: instruction pointer
+label       LABEL    mark jump target
+jmp         LABEL    jump
+cjmp BOOL BOOL LABEL jump if (arg1 ? a : %a) == arg2   -- (arg1?DATA)    --
+exit                 quit program                      --                --
+
+: variables
+fvar        VAR      fetch variable                    --                -- DATA
+svar        VAR      store variable                    -- DATA           --
+skvar       VAR      set variable to + keep a          -- DATA           -- DATA
+cpvar       VAR VAR  set var (arg2) to (arg1)
+rpvar       VAR VAR  svar (arg1), fvar (arg2)          -- DATA           -- DATA
+
+: stacks
+pushdat     DATA     push data                         --                -- DATA
+popdat               pop data                          -- DATA           --
+dup                  duplicate a                       -- DATA           -- DATA DATA
+
+pusharg              push Sarg <-- (pop Smain)         -- DATA           --
+poparg               push Smain <-- (pop Sarg)         --                -- DATA
+
+rpush                push %a to Smain                  --                -- DATA
+rpop                 %a = (pop Smain)                  -- DATA           --
+
+: registers
+cpreg       REG REG  %(arg2) = %(arg1)
+swreg       REG REG  swap(%(arg1), %(arg2))
+
+: Sret (crossover between instrp, stack)
+call        LABEL    push Sret, jump
+ret                  jump (pop Sret)
+
+: objects + Sret
+invoke      METHOD   peek Smain, push Sret, jump       -- DATA           -- DATA
+opack       ELEM     b[arg1] = (a = pop Smain);        -- DATA OBJ       -- OBJ
+
+: vars + regs
+rfvar       VAR      %a = (fetch variable)
+rsvar       VAR      set variable to %a
+
+: I/O
+rdstr                read line as string               --                -- STR
+rdint                read integer (until space)        --                -- INT
+gsysa                retrieve one arg from cmd-line    --                -- STR
+print                print a                           -- STR            --
+
+: plugins
+plugin      STR      load plugin with name = arg1      --                -- PLUGIN
+
+: transform / introspection / reflection
+typeof               typeof(a)                         -- DATA           -- STR
+isdef                isdef(a)                          -- DATA           -- INT
+cast                 a = cast<typeof(b)>(a)            -- DATA DATA      -- DATA
+
+binop  STR           a = binop{a (arg1) b}             -- DATA DATA      -- DATA
+rbinop STR           %a = binop{%a (arg1) %b}          --                --
+
+: builtin operators
+add                  a + b                             -- DATA DATA      -- DATA
+sub                  a - b                             -- DATA DATA      -- DATA
+mul                  a * b                             -- DATA DATA      -- DATA
+div                  a / b                             -- DATA DATA      -- DATA
+mod                  a % b                             -- INT  INT       -- INT
+eq                   a == b                            -- DATA DATA      -- INT
+lt                   a < b                             -- (INT|FLT)*2    -- INT
+gt                   a > b                             -- (INT|FLT)*2    -- INT
+
+r*(BUILTINOP)        ^^^^^^                            --                --
+                     all of the above builtin stack ops
+                     have corresponding register ops
+                     with def: %a = %a X %b

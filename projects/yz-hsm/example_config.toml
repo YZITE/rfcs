@@ -1,0 +1,26 @@
+[local-server]
+name = "alph"
+timestamp = 2019-11-19T21:49:11.000000
+temp-dir = "/tmp/zhsm"
+cache-dirs = "/var/cache/zhsm"
+my-network = "home"
+targets = { home = "192.168.0.100", buckelw = "192.168.3.100" }
+scripts-dir = "/opt/zhsm-scripts"
+
+[dbserver]
+id = 0
+metadata-dir = "/var/lib/zhsm/meta"
+
+[[servers]]
+name = "bongo"
+# address should be reachable by the local dbserver
+# if not given, use targets[dbserver.my-network]
+# address = ...
+# routing from buckelw to bongo via the dbserver
+targets = { home = "192.168.0.101" }
+serve = ["fileserver"]
+
+[fileserver.backends.a]
+path = "/mnt/sda1"
+script = "filesrv/sda1"
+uuid = "550e8400-e29b-41d4-a716-446655450110"

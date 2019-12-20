@@ -1,0 +1,25 @@
+HDR zxtw2/AST/base.hpp 2018 Erik Zscheile
+
+Ilcl printenv imbc/decl
+Istd memory utility
+
+namespace AST
+
+:sct node
+virtual~
+vp -except print PrintEnv&
+vp -except gen_code zs_imbc::opcode&
+
+:sct glbl node
+:sct stmt virtual node
+:sct expr node
+:sct func_call node
+
+:sct container virtual node
+vp bool empty
+
+:-
+type stmt_ptr std::unique_ptr<stmt>
+type expr_ptr std::unique_ptr<expr>
+
+: template<typename T> auto guniquep(T * const ptr) { return std::unique_ptr<T>(ptr); }

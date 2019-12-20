@@ -1,0 +1,101 @@
+=== XTW SYNTAX ===
+
+fcall:	<label> '(' <args>? ')'
+func:	'f' <label> <args>? '{' <body> '}'
+lblst:	<label> ':'
+
+cmd:	<cmdname> <args>? ';'
+if:	'(' <expr> ')' '{' '}'
+
+cns:	'n' <id> '{' body '}'	# namespace
+
+=== COMMANDS ===
+
+include: "include" <search path spec: str> <file name: str>
+ce:	'e'		# exit program
+cp:	'p' <expr>	# print
+cg:	'g' <label>	# goto
+cr:	'r' <expr>?	# return
+
+cmd:	<cns>
+   |	<ce>
+   |	<cp>
+   |	<cg>
+   |	<cr>
+
+=== OPERATORS ===
+
+== EXPR OPERATORS ==
+
+= 1. OPERATORS =
+
+isset:	'?' <lvar> ('.' <elem id>)?
+
+= 2. OPERATORS =
+
+TYPES:
+  ol*|*x: -E-->~*
+  ol1:  -t  : i, f
+  ol2:  -t  : i, f, s
+  ol3:  -t  : !<id>
+  ol4:  ->  : s, o
+-- TYPES
+
+ol3:	<int>
+   |	<float>
+   |	<string>
+   |	<lvar>
+   |	'o'
+
+typeq:	<ol3> '~' <ol3>	  -->	<int>
+valeq:	<ol3> '=' <ol3>	  -->	<int>
+
+lt:	<ol1> '<' <ol1>	  -->	<int>
+gt:	<ol1> '>' <ol1>	  -->	<int>
+
+add:	<ol2> '+' <ol2>	  -->	<ol2>
+subt:	<ol2> '-' <ol2>	  -->	<ol2>
+mul:	<ol1> '*' <ol1>	  -->	<ol1>
+div:	<ol1> '/' <ol1>	  -->	<ol1>
+mod:	<intx> '%' <intx>	-->	<int>
+
+mcll:	<ol4> ('.' <elem id>)+ -->	<ol3>	# method call
+
+expr:	<ngene>
+    |	<isset>
+    |	<typeq> | <valeq>
+    |	<lt>    | <gt>
+    |	<add>   | <subt>  | <mul>
+    |	<div>   | <mod>
+    |	<mcll>
+    |	<ol3>
+
+== CAST OPERATORS ==
+
+cast:	'c' <trge> <expr>
+
+== ASSIGN COMMANDS ==
+
+assign: <lvar> <aquant>? '=' <aexpr>
+
+aquant: '.' <elem id>	# member assign
+      | '.'		# member call + reassign
+
+aexpr: '&' <label>	# function pointer
+     | 'i' <plg name>	# plugin import
+     | <expr>
+
+== NULLARY GENERATOR EXPRS ==
+
+ngene: 'o'		# empty object
+     | '??'		# null pointer
+     | '@'		# stdin.read line as string
+     | '!'		# stdin.read single integer
+     | 'a'		# pop next cmdl arg
+
+== OPERATOR PRECEDENCE LEVELS ==
+
+10 = ~ < >
+20 + -
+30 * / %
+40 c . ?

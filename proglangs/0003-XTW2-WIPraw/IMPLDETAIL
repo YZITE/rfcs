@@ -1,0 +1,30 @@
+## commands
+
+p <expr> --> print(<expr>)
+VM-->
+  <expr>
+  print
+
+g <label> --> goto(<label>)
+VM-->
+  goto <label>
+RES-->
+  instit = resolve(<label>)
+
+r <expr> --> return(<expr>)
+VM-->
+  <expr>
+  return
+RES-->
+  <expr>
+  apush(epop())
+  instit = resolve(rtstkpop())
+
+## operators
+
+?(<expr.*>) --> isset(<expr>)
+VM-->
+  <expr>
+  isset
+RES-->
+  isset(<expr>) --> static_cast<bool>(<expr>)

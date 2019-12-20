@@ -1,0 +1,177 @@
+Ein eigenes Konzept für ein Hierarchisches Speichermanagement.
+von zseri. %name = "zhsm";
+
+Lizenz = || ( GPL-2 LGPL-3+ )
+
+Referenzen:
+http://docs.openafs.org/QuickStartUnix.pdf#DAFS
+https://blogs.oracle.com/solarium/samfs
+https://www.storage-insider.de/filesysteme-brauchen-mehr-funktionen-a-116724/index2.html
+https://www.graudata.com/openarchive/
+https://de.wikipedia.org/wiki/OPENARCHIVE
+https://de.wikipedia.org/wiki/IBM_General_Parallel_File_System
+https://de.wikipedia.org/wiki/Hierarchisches_Speichermanagement
+
+Vorbilder: CephFS, GlusterFS, Git, OpenAFS, Amazon S3
+
+Mehrere Server, mehrere Backends.
+- FUSE
+- OverlayFS?
+- Routing / ZPRD
+- TCP, bincode, flate2, capnproto-rpc
+- OpenAFS-Terminologie?
+  BOS, Cell,
+  Database Server, Protected (Access Control), Volume Location,
+  File Server
+- Amazon S3 (Buckets & Objects)
+- User Management?
+- zs-apc-spdu-ctl integration
+- möglichst autonome Systeme, nur so viele Daten synchronisieren und mehrfach vorhalten, wie nötig.
+
+ein (oder mehrere) Controller (Server), kann auch ein RasPi sein,
+halten die Konfiguration und die Server start/stop-Skripte
+Backends laufen auf Storage-Servern (Peers).
+RAID-Startzeit: bis zu 5 Minuten.
+
+Architektur grundlegend:
+
+Client <-> (primary) Database Server <-> Server-Env <-> File Server <-> Backend
+           |                |
+           config+scripts   HMetadata
+
+Database Server = Controller
+
+Datenbank: SQLite
+  siehe "Limits": https://www.sqlite.org/limits.html
+
+Backend = file path
+
+Abkürzungen:
+  S+B = Server + Backend
+  UUID = blob(16)
+
+Cache:
+- Server schon hochziehen, während noch Dateien aus dem selben Ordner
+  aus dem Cache geholt werden.
+- Controller speichert häufig benutzte Objekte zwischen.
+
+Zuordnung von Dateien zu Servern: Datei -> FSID=UUID -> Server+Backend
+
+Zuordnung von Dateien zu File Groups:
+- nach Dateigröße
+- Dateipfad
+- Änderungsdatum
+- Access Pattern?
+--> "file resolve chains"
+- suche N Matches, = N replica's
+
+Datenbankserver-Daten:
+- "UUID" -> "Server: TEXT"
+  (primary Controller teilt Server seine UUID mit)
+- "UUID" -> "Server: UUID" "Backend: TEXT"
+  (FileServer teilt alle uuid's der Backends dem primary controller mit,
+  wenn dieser sich verbindet)
+- ID -> "attribute"
+- "file resolve chains"
+  : "UUID (primary)" "operator: char(1)" "attribute: integer" "action: char(1)" "destination: UUID" 
+  action can be :: u_se | s_kip | j_ump
+  - use: use the $dst as S+B
+  - skip: skip the S+B
+  - jump: go to another "file resolve chain" via UUID
+- "per object data"
+  : "UUID"="FSID" ->
+    - UUID of current S+B
+      (needed to be able to gracefully change the "file resolve chains")
+    - UUID (NULL) of new S+B
+      (while rebalancing)
+    - skip count
+      (e.g. skipped results from file resolve chain b.c. of (I/O) errors)
+    - latest accepted mtime, in millisecs since unix-time
+
+Die Datenbankserver-Daten können (bis auf die "file resolve chains")
+komplett aus allen S+B extrahiert werden, dafür müssen allerdings
+alle S+B laufen.
+
+Datenspeicherung:
+- Daten + Metadaten werden in einem Ordner gespeichert.
+  Pfad zu Objekt = ${droot}/${uuid:0:2}/${uuid:2:4}/${uuid:4}
+    ${UUID} wird vorm Schreiben auf das Dateisystem gepackt,
+    d.h. in Binärdaten umcodiert, wobei '\0' (0x00) und '/' (0x2f) durch 2 Byte codiert werden
+    (da UNIX-Dateisysteme keine Dateinamen mit '\0' und/oder '/' zulassen)
+  - mtime wird genutzt, um aktuellste Version im Cluster zu finden
+    (benötigt ext4 | xfs, oder anderes Dateisystem mit at-least-millisecs-timestamp)
+  "Objektkopf":
+  - Datentyp: enum : Datei | Ordner | Meta | Partial
+  - offset der eigentlichen Daten, dann "freie" Metadaten
+  - Flags/Tags?: outdated, hot, fragments-meta
+  - optional: fragment data
+  - xattrs
+  - usw... siehe https://de.wikipedia.org/wiki/Dateiattribut
+  - Referenzcount
+  "Objektkörper" = [Daten], mögl. sparse file/holes.
+- Jeder Datenkopf wird auch auf dem zuständigen "Database Server"
+  gespeichert, samt mtime. Damit ist immer das gültige Datenobjekt
+  bekannt.
+  Zudem werden auf "Database Server"n noch die "file resolve chains"
+  gespeichert.
+- Diese Daten + Metadaten werden gemeinsam synchronisiert.
+  Daten werden während dem Empfangen in einem "temp" Ordner gespeichert,
+  und am Ende der Übertragung wird der Hash verglichen,
+  passt dieser, wird das Objekt an seinen Zielort verschoben
+  und die mtime auf die des Originals zurückgeändert
+- Mögl. Daten-Striping/Fragmentierung.
+  resolve:
+  Datei -> FSID -> Meta File -> S+B
+                   |
+                   Partial File -> S+B
+                   Partial File -> S+B
+                   ...
+
+Routing:
+- vllt. pro Storage-Server eine Konfig, welche pro Ziel-Subnetz
+  die erreichbare IP hinterlegt. Jeder Client übergibt dann sein
+  Subnetz und Hostnamen, und bekommt entsprechende Server-Adressen
+  rausgereicht. ist keine für das Zeilnetz hinterlegt, wird über
+  den Controller geroutet. (Option: über anderen Storage-Server routen?)
+-> jeder Server unterstützt das "proxying" eines anderen Servers,
+   d.h. Daten werden über diesen weitergeleitet.
+
+SCSI:
+  vllt., anstatt einen Server immer samt Speicher hochzufahren,
+  im Fehlerfall einfach neustarten und Controller benachrichtigen.
+
+Protokolle:
+- Registration + Abmeldung von Servern (DBserver // Fileserver)
+- discovery
+- I/O
+- synchronization
+  - config
+  - data (re-)distribution
+  (every synchronization is coordinated by the primary controller)
+  - primary controller (re-)election (find controller with lowest id)
+    - optional, only if not manual
+    - performed when normal primary controller is down
+    - all secondary controllers mirror the information of the primary
+
+Protokoll-Meta...
+- capnproto for rust
+
+Fehlermanagement.
+
+ - I/O-Error
+  - Datei nicht verfügbar (read error)
+
+  - Datei kann nicht geschrieben werden (write error)
+    oder Speicher ist alle
+
+ - Server-Error
+  - Server kann nicht gestartet werden (start error)
+
+  - Server kann nicht gestoppt / heruntergefahren werden (stop error)
+
+ - Sync-Error
+  - eine Datei wurde zu zwei Zeitpunkten editiert,
+    jede Version ist auf einem anderen Server gespeichert
+    -> Kollision/Split-Brain
+    sollte theoretisch von Controller abgefangen werden.
+    neuste Version gewinnt.

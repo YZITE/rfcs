@@ -1,0 +1,16 @@
+SOURCE: github:zserik/zxtw2/docs/*
+Category: Esoteric
+
+Warning: This is not a full specification
+  (see ../0003-*.md if it exists)
+  it contains [Work In Progress] data about ZXTW2
+
+Index:
+
+  GENUTIL        "draft about another generator utility to generate AST & co"
+    probably replacable with Rust macros
+
+  IMBYTECODE     "planned Intermediate Bytecode"
+  IMPLDETAIL     "planned implementation details"
+  SYNTAX         "syntax description"
+  STDL           "standard library + extensions"

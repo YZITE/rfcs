@@ -1,0 +1,45 @@
+=== ZXTW standard library ===
+
+== new interpreter exported functions ==
+
+x.__get_type() returns a object with the same type as the argument,
+which (in most cases) evaluates to boolean false
+ --> (x.__get_type()) { unreachable; }
+
+x.__get_type().__get_type() =(=) x.__get_type()
+
+x.__type2str() returns a string.
+  i  integer
+  f  float
+  s  string
+  o  object
+  l  method/function ptr
+  -  unknown
+
+x.__to_string() is a interface to a varcontent.to_string() method
+
+== CASTS ==
+-in cast.xtw:
+
+// type primitives
+i = 0;
+f = 0.0;
+s = "";
+o = o;
+
+f c l::t l::v {
+  (__get_type(l::v) = l::t) r l::v;
+  __switch l::t {
+    i: r __to_int(l::v);
+    f: r __to_float(l::v);
+    s: r __to_string(l::v);
+    o: r o;
+  };
+}
+
+== OPERATORS ==
+-in ops.xtw
+
+__binop ~ 10 l::x l::y {
+  r (__get_type(l::x) = __get_type(l::y));
+}
