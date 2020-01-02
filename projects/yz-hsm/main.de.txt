@@ -122,6 +122,8 @@ Datenspeicherung:
     - usw... siehe https://de.wikipedia.org/wiki/Dateiattribut
   - Flags/Tags?: outdated, hot, fragments-meta
   - Referenzcount
+    - es ist besser, wenn ein RefCnt (fehlerhafterweise) zu hoch ist,
+      als wenn dieser zu niedrig ist.
   "Objektkörper" = [Daten], mögl. sparse file/holes.
 - Jeder Datenkopf wird auch auf dem zuständigen "Database Server"
   gespeichert, samt mtime. Damit ist immer das gültige Datenobjekt
