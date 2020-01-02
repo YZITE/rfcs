@@ -46,6 +46,12 @@ Datenbank = Cache:
   oder
     PostgreSQL, erspart Aufwand für Synchronisierung
 
+  - vielleicht eine Tabelle anlegen, pro Dateiserver eine Spalte (1 Byte),
+    als Bitfeld. in 3 Bits:
+    - outdated (Daten sind veraltet)
+    - current (Daten liegen auf Server)
+    - target (Daten sollen auf Server liegen)
+
 Backend = file path
 
 Abkürzungen:
@@ -103,12 +109,18 @@ Datenspeicherung:
   - mtime wird genutzt, um aktuellste Version im Cluster zu finden
     (benötigt ext4 | xfs, oder anderes Dateisystem mit at-least-millisecs-timestamp)
   "Objektkopf":
-  - Datentyp: enum : Datei | Ordner | Meta | Partial
-  - offset der eigentlichen Daten, dann "freie" Metadaten
+  - Daten-Main-Typ: enum : Meta | Data
+  - Metadatenobjekte (Main = Meta):
+    - Daten-Sub-Typ: enum :
+      - file "Datei"
+      - dir  "Ordner"
+      - special
+    - Verweis auf eigentliche Daten: enum :
+      - Daten inline
+      - Liste von Datenobjekten, die verkettet werden.
+    - xattrs
+    - usw... siehe https://de.wikipedia.org/wiki/Dateiattribut
   - Flags/Tags?: outdated, hot, fragments-meta
-  - optional: fragment data
-  - xattrs
-  - usw... siehe https://de.wikipedia.org/wiki/Dateiattribut
   - Referenzcount
   "Objektkörper" = [Daten], mögl. sparse file/holes.
 - Jeder Datenkopf wird auch auf dem zuständigen "Database Server"
