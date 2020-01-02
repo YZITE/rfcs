@@ -41,7 +41,7 @@ Client <-> (primary) Database Server <-> Server-Env <-> File Server <-> Backend
 
 Database Server = Controller
 
-Datenbank:
+Datenbank = Cache:
     SQLite, siehe "Limits": https://www.sqlite.org/limits.html
   oder
     PostgreSQL, erspart Aufwand für Synchronisierung
@@ -129,6 +129,24 @@ Datenspeicherung:
                    Partial File -> S+B
                    ...
 
+- lost+found
+- versteckter, virtueller Ordner, um als Admin Tokens einsehen zu können.
+
+Datenzugriff:
+- Token pro Zugriff, von open() bis close(), mit timeout
+- Token enthält:
+  - Object-UUID
+  - Modi [one of]:
+    - read
+    - write
+    - read/write
+    - append (includes read/write, more efficient for big files)
+
+- Wie geht man mit Streams von Daten um, also Dateien,
+  an welche laufend angefügt wird?
+  - lesend: `tail -f`?
+  - schreibend: `x >> /y`?
+
 Routing:
 - vllt. pro Storage-Server eine Konfig, welche pro Ziel-Subnetz
   die erreichbare IP hinterlegt. Jeder Client übergibt dann sein
@@ -149,6 +167,7 @@ Protokolle:
 - synchronization
   - config
   - data (re-)distribution
+  - data writes
   (every synchronization is coordinated by the primary controller)
   - primary controller (re-)election (find controller with lowest id)
     - optional, only if not manual
