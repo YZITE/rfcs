@@ -1,0 +1,93 @@
+# Task list / TODO
+
+- [ ] Common library
+  - local
+    - [ ] FSID/UUID <-> backend path
+  - remote/networking
+    - [ ] Kerberos Auth
+
+- [ ] Cache library
+  - [ ] Cache
+  - [ ] file resolver
+
+- [ ] File Server
+  - [ ] File Backend
+    - [ ] startup: ensure backend paths
+    - [ ] object -> backend file path
+    - [ ] object types
+    - [ ] flags/tags
+    - [ ] reference count
+    - [ ] use backend files mtime
+    - Main=Meta
+      - [ ] data sub type
+      - [ ] data link (inline | list of concat' objects)
+      - [ ] xattrs
+      - [ ] other file attributes
+  - [ ] Network API
+  - [ ] Debug API
+  - [ ] Kerberos Auth
+  - [ ] Synchronization
+  - [ ] Access Token Management
+  - Workflows:
+    - [ ] add backend
+    - [ ] create access token for object
+    - [ ] remove/invalidate/unlink access token
+    - [ ] automatic expire of access token (TTL)
+    - [ ] access object using access token
+
+- [ ] Database Server
+  - [ ] Network API
+  - [ ] Debug API
+  - [ ] Cache glue to "Cache library"
+  - [ ] Kerberos Auth
+  - [ ] Synchronization
+  - [ ] file resolve chains
+  - Workflows:
+    - [ ] add file server
+    - [ ] remove file server
+
+- [ ] Controller Server (Server start+stop)
+  - frontend
+    - [ ] Network API
+    - [ ] Debug API
+    - [ ] Kerberos Auth
+    - [ ] Synchronization
+  - middle-end
+    - [ ] early server startup
+  - backend
+    - [ ] SNMP client part
+    - [ ] fping part
+
+- [ ] Frontend
+  - [ ] access file
+  - [ ] access directory
+  - [ ] Kerberos Auth
+  - [ ] file fragmentation/striping
+  - [ ] data stream handling (unknown final file size)
+
+- [ ] Backend / Networking Protocols
+  - [ ] Adding + Removing of Servers (persistent)
+  - [ ] Registration + Deregistration of Servers (temporary)
+  - [ ] Server Discovery
+  - [ ] I/O
+  - [ ] Synchronization
+    - [ ] configuration
+    - [ ] data (re-)distribution
+    - [ ] data writes
+    - [ ] controller election
+    - [ ] DBserv election
+  - [ ] Debug
+  - [ ] Kerberos Auth
+  - [ ] Meta
+  - [ ] Routing if no direct access is possible
+    - [ ] config options
+
+- [ ] Error management
+  - [ ] I/O Errors
+    - [ ] read
+    - [ ] write
+  - [ ] Server Control Errors
+    - [ ] start
+    - [ ] stop
+  - [ ] Synchronization Errors
+    - [ ] split brain situation (inconsistency between network parts)
