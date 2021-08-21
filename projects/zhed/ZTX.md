@@ -3,6 +3,18 @@
 Top-level commands were used to associate stuff and to influence layout.
 Non-top-level commands were used to associate stuff inline.
 
+[rudimentary parser for zxi](https://ytrizja.de/misc/ede667c3b8eca93a151730c75da65d202af21f0905fdc187251faa4547bccc31.tar.zst)
+
+## general rules
+
+```
+\*  inline commands
+.*  non-inline commands
+:*  named constants/descriptors
+```
+
+## specific commands
+
 `#` (varying count) was used similiar to Markdown, it denotes section headers including
 the indention level. Sections should instead be represented via AST nesting instead.
 Another feature taken from Markdown were nested enumerations, etc...
