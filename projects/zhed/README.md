@@ -67,10 +67,13 @@ although `.ref` was considered to be weaker than `.link`.
 The keyword `extern` was used to mark references to documents outside of the
 workspace. This was not completely consistent, sometimes links marked as non-extern
 refered to worksheets, which although owned, are strictly still extern.
-So we want to have a database which associates the following information:
- - UUID
- - `extern` (boolean)
- - `owned` (boolean)
+
+We don't need to store any `extern` or `owned` relationship because
+it is only relevant if we can modify a document, or we can't.
+If we can infact modify a document, storing that fact is useless.
+If we can't, the same applies.
+If we think we know that we can modify a document, we need to check that anyways.
+Thus, we don't store that.
 
 To make breaking references much harder, all references to internal objects
 are done via UUIDs.
@@ -79,3 +82,10 @@ Often, is was possible to associate arbitrary key-value data to references
 (often used for authors, which belong to the index, and for page data,
 which requires nested indices).
 We need a hierarchy of references to represent these properly.
+
+## Reference date
+
+Originally, I planned on saving a `reference_date` in each document which
+specifically referenced a single date, like diary entries. But I managed
+to implement a parser which extracts that information from my usual path
+format, which encodes that, so I got rid of that.
