@@ -33,6 +33,11 @@ and should be transformable once necessary.
 Another focus which is established is the introduction of glue code and glue metadata
 when transformation is not straight-forward.
 
+It might also be a good idea to completely split annotating text from writing
+macro code and style information, similar to HTML/CSS/JS, but with a more readable
+syntax and a somewhat more thorough design.
+This is something which has bothered me quite a bit in TeX and `troff`.
+
 ## Goals
 
 This project aims to provide 4 things:
