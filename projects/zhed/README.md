@@ -47,6 +47,7 @@ This project aims to provide 4 things:
 - an editor, which integrates
   - the validator (to avoid saving corrupted files, overwriting the previous working one)
   - the linker + optimizer (automatically update generated files or statistics)
+- an export mechanism, able to at least product xetex documents, and maybe XDVI and SVG files.
 
 ## Navigation
 
